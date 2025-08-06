@@ -119,7 +119,6 @@ class Ball(Entity):
                 )
 
             if self.health == 0:
-                self.space.remove(self.body, self.shape)
                 if self.faces:
                     self.visual_effect_manager.add(
                         FaceImplosionEffect(
@@ -139,6 +138,10 @@ class Ball(Entity):
                             duration=0.5
                         )
                     )
+
+    def remove_if_dead(self) -> None:
+        if self.health <= 0 and self.body in self.space.bodies:
+            self.space.remove(self.body, self.shape)
 
 
     def get_current_face(self) -> pygame.Surface:
