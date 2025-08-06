@@ -11,7 +11,7 @@ class LoadedFaceConfiguration:
         face_configuration: FaceConfiguration,
     ):
         self.happy_surface = self.load_circular_image(face_configuration.happy_path, face_configuration.diameter)
-        self.sad_surface = self.load_circular_image(face_configuration.sad_path, face_configuration.diameter)
+        self.angry_surface = self.load_circular_image(face_configuration.angry_path, face_configuration.diameter)
 
     @staticmethod
     def load_circular_image(path: Path, diameter: int) -> pygame.Surface:

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from src.game.display import Display
+from src.display.display import Display
 
 if TYPE_CHECKING:
     from src.entity.ball.ball import Ball

@@ -6,9 +6,12 @@ import pygame
 import pymunk
 
 from src.entity.ball.ball_spawn_config import BallSpawnConfig
+from src.entity.ball.modifiers.angry_modifier import AngryModifier
+from src.entity.ball.modifiers.ball_modifiers import BallModifiers
+from src.entity.ball.modifiers.pulse_modifier import PulseModifier
 from src.entity.entity import Entity
 from src.faces.loaded_face_configuration import LoadedFaceConfiguration
-from src.game.display import Display
+from src.display.display import Display
 from src.visuals.damage_number_effect import DamageNumberEffect
 from src.visuals.face_implosion_effect import FaceImplosionEffect
 from src.visuals.halo_effect import HaloEffect
@@ -22,7 +25,6 @@ class Ball(Entity):
     SPEEDUP_CHANCE = 0.1
     VELOCITY_CAP = 2000
 
-    ANGRY_FACE_SECONDS_PER_DAMAGE = 0.1
     CRIT_SECONDS = 1
 
     def __init__(
@@ -58,13 +60,15 @@ class Ball(Entity):
         self.faces = LoadedFaceConfiguration(self.prototype.faces) if self.prototype.faces else None
 
         self.visual_effect_manager = visual_effect_manager
+        self.modifiers = BallModifiers()
 
     @override
     def update(self, dt: float) -> None:
         if self.health <= 0:
             return
 
-        self.hit_timer_seconds = max(0.0, self.hit_timer_seconds - dt)
+        self.modifiers.update(dt)
+
         if random.random() < self.SPEEDUP_CHANCE and self.body.velocity.length < self.VELOCITY_CAP:
             self.body.velocity *= 1 + self.SPEEDUP_RATE
 
@@ -75,13 +79,12 @@ class Ball(Entity):
 
         pos = (self.body.position.x, self.body.position.y)
 
-        # Ball base
-        display.draw_circle(pos, self.radius, self.prototype.color)
-
-        # Face image (rotated)
+        alpha = self.modifiers.get_pulse_alpha()
         if self.prototype.faces is not None:
             angle_deg = -self.body.angle * 180 / math.pi
-            display.draw_image(self.get_current_face(), pos, angle_deg)
+            display.draw_image(self.get_current_face(), pos, angle_deg, alpha)
+        else:
+            display.draw_circle(pos, self.radius, self.prototype.color, alpha)
 
         # Health text below the ball
         health_text = f"{int(self.health)}"
@@ -94,8 +97,10 @@ class Ball(Entity):
 
     def receive_damage(self, damage: int, is_crit: bool) -> None:
         if damage > 0:
-            self.hit_timer_seconds = damage * self.ANGRY_FACE_SECONDS_PER_DAMAGE
             self.health = max(0, self.health - damage)
+
+            self.modifiers.add(AngryModifier(damage))
+            self.modifiers.add(PulseModifier())
 
             self.visual_effect_manager.add(
                 DamageNumberEffect(
@@ -120,7 +125,7 @@ class Ball(Entity):
                         FaceImplosionEffect(
                             pos=(self.body.position.x, self.body.position.y),
                             angle_deg=-self.body.angle * 180 / math.pi,
-                            face_surface=self.faces.sad_surface,
+                            face_surface=self.faces.angry_surface,
                             initial_radius=self.radius + 10,
                             duration=0.5
                         )
@@ -138,7 +143,7 @@ class Ball(Entity):
 
     def get_current_face(self) -> pygame.Surface:
         assert self.faces is not None
-        return self.faces.happy_surface if self.hit_timer_seconds == 0 else self.faces.sad_surface
+        return self.faces.angry_surface if self.modifiers.is_angry() else self.faces.happy_surface
 
     @property
     def name(self) -> str:

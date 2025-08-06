@@ -8,7 +8,7 @@ from src.configuration.configuration import Configuration
 from src.entity.ball.ball import Ball
 from src.entity.ball.ball_spawn_config import BallSpawnConfig
 from src.entity.wall import Wall
-from src.game.display import Display
+from src.display.display import Display
 from src.visuals.visual_effect_manager import VisualEffectManager
 
 
