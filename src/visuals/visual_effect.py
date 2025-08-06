@@ -8,7 +8,7 @@ class VisualEffect(ABC):
         self.timer_seconds = timer_seconds
 
     @abstractmethod
-    def draw(self, display: Display):
+    def draw(self, display: Display) -> None:
         pass
 
     def update(self, dt: float) -> None:

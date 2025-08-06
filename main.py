@@ -28,6 +28,7 @@ def main():
         BallPrototype(name="jin", color=pygame.Color("lightgreen"), faces=jin_faces),
         BallPrototype(name="hehehe", color=pygame.Color("lightcoral")),
         BallPrototype(name="anununu", color=pygame.Color("lightpink")),
+        BallPrototype(name="kachupuchu", color=pygame.Color("lightgray")),
     ]
 
     factory = BallSpawnConfigFactory(

@@ -79,7 +79,7 @@ class Game:
             self,
             walls: list[Wall],
             balls: list[Ball],
-    ) -> Ball | None:
+    ) -> None:
         button_width, button_height = 220, 60
         button_rect = pygame.Rect(
             (
