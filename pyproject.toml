@@ -1,4 +1,8 @@
 [project]
+authors = [
+    { name = "Nil Fons Miret", email = "nilf@netflix.com" }
+]
+license = "MIT"
 name = "ball-game"
 version = "0.1.0"
 description = "Add your description here"
@@ -14,3 +18,13 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.8.0",
 ]
+
+[tool.mypy]
+strict = true
+disable_error_code = ["import-untyped"]
+
+["mypy-pygame.*"]
+ignore_missing_imports = true
+
+["mypy-pymunk.*"]
+ignore_missing_imports = true
