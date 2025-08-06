@@ -1,4 +1,4 @@
-from src.game.display import Display
+from src.display.display import Display
 from src.visuals.visual_effect import VisualEffect
 
 

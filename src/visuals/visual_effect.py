@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.game.display import Display
+from src.display.display import Display
 
 
 class VisualEffect(ABC):

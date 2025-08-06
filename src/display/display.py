@@ -31,7 +31,7 @@ class Display:
         temp_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
 
         # Draw the circle at the center of the temporary surface
-        circle_color = (*color[:3], alpha)
+        circle_color = pygame.Color(color.r, color.g, color.b, alpha)
         pygame.draw.circle(temp_surface, circle_color, (radius, radius), int(radius), width)
 
         # Calculate the top-left position to blit the temp surface
@@ -51,10 +51,12 @@ class Display:
             self,
             image: pygame.Surface,
             center: tuple[float, float],
-            angle_deg: float = 0
+            angle_deg: float = 0,
+            alpha: int = 255,
     ) -> None:
         if angle_deg != 0:
             image = pygame.transform.rotate(image, angle_deg)
+        image.set_alpha(alpha)
         rect = image.get_rect(center=center)
         self.sim_surface.blit(image, rect.topleft)
 

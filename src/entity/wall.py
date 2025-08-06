@@ -2,7 +2,7 @@ from typing import override
 
 import pymunk
 from src.entity.entity import Entity
-from src.game.display import Display
+from src.display.display import Display
 
 
 class Wall(Entity):
