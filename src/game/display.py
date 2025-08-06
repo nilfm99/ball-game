@@ -23,9 +23,20 @@ class Display:
             center: tuple[float, float],
             radius: float,
             color: pygame.Color,
+            alpha: int = 255,
             width: int = 0,
-    ):
-        pygame.draw.circle(self.sim_surface, color, center, int(radius), width)
+    ) -> None:
+        """Draw a circle with optional alpha transparency."""
+        diameter = int(radius * 2)
+        temp_surface = pygame.Surface((diameter, diameter), pygame.SRCALPHA)
+
+        # Draw the circle at the center of the temporary surface
+        circle_color = (*color[:3], alpha)
+        pygame.draw.circle(temp_surface, circle_color, (radius, radius), int(radius), width)
+
+        # Calculate the top-left position to blit the temp surface
+        blit_pos = (center[0] - radius, center[1] - radius)
+        self.sim_surface.blit(temp_surface, blit_pos)
 
     def draw_line(
             self,
@@ -33,16 +44,26 @@ class Display:
             end: tuple[float, float],
             color: tuple[int, int, int],
             width: int = 1,
-    ):
+    ) -> None:
         pygame.draw.line(self.sim_surface, color, start, end, width)
 
-    def draw_image(self, image: pygame.Surface, center: tuple[float, float], angle_deg: float = 0):
+    def draw_image(
+            self,
+            image: pygame.Surface,
+            center: tuple[float, float],
+            angle_deg: float = 0
+    ) -> None:
         if angle_deg != 0:
             image = pygame.transform.rotate(image, angle_deg)
         rect = image.get_rect(center=center)
         self.sim_surface.blit(image, rect.topleft)
 
-    def draw_halo(self, center: tuple[float, float], halo_radius: int, alpha: int):
+    def draw_halo(
+            self,
+            center: tuple[float, float],
+            halo_radius: int,
+            alpha: int,
+    ) -> None:
         halo_surf = pygame.Surface((halo_radius * 2, halo_radius * 2), pygame.SRCALPHA)
         pygame.draw.circle(
             halo_surf,
@@ -52,8 +73,16 @@ class Display:
         )
         self.sim_surface.blit(halo_surf, (center[0] - halo_radius, center[1] - halo_radius))
 
-    def draw_text(self, text: str, center: tuple[float, float], font: pygame.font.Font, color: tuple[int, int, int]):
-        text_surf = font.render(text, True, color)
+    def draw_text(
+            self,
+            text: str,
+            center: tuple[float, float],
+            font: pygame.font.Font,
+            color: tuple[int, int, int],
+            alpha: int = 255,
+    ) -> None:
+        text_surf = font.render(text, True, color).convert_alpha()
+        text_surf.set_alpha(alpha)
         text_rect = text_surf.get_rect(center=center)
         self.sim_surface.blit(text_surf, text_rect)
 
@@ -122,7 +151,11 @@ class Display:
         self.draw_top_hud()
         self.draw_bottom_hud(ball_info)
 
-    def draw_fight_again_button(self, button_rect: pygame.Rect, font: pygame.Font):
+    def draw_fight_again_button(
+            self,
+            button_rect: pygame.Rect,
+            font: pygame.Font
+    ) -> None:
         pygame.draw.rect(self.screen, (220, 180, 60), button_rect, border_radius=12)
         pygame.draw.rect(self.screen, (120, 80, 0), button_rect, width=3, border_radius=12)
         text_surf = font.render("Fight Again", True, (50, 30, 0))

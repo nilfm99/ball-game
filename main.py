@@ -3,8 +3,9 @@ from pathlib import Path
 import pygame
 
 from src.configuration.configuration import Configuration
-from src.entity.ball.ball_factory import BallFactory
-from src.entity.ball.face_configuration import FaceConfiguration
+from src.entity.ball.ball_spawn_config_factory import BallSpawnConfigFactory
+from src.entity.ball.ball_prototype import BallPrototype
+from src.faces.face_configuration import FaceConfiguration
 from src.game.game import Game
 
 
@@ -22,16 +23,16 @@ def main():
         2 * configuration.ball_radius,
     )
 
-    ball_specs = [
-        ("nil", pygame.Color("lightblue"), nil_faces),
-        ("jin", pygame.Color("lightgreen"), jin_faces),
-        ("bubu", pygame.Color("lightcoral"), None),
-        ("kachupuchu", pygame.Color("lightpink"), None),
+    ball_prototypes = [
+        BallPrototype(name="nil", color=pygame.Color("lightblue"), faces=nil_faces),
+        BallPrototype(name="jin", color=pygame.Color("lightgreen"), faces=jin_faces),
+        BallPrototype(name="hehehe", color=pygame.Color("lightcoral")),
+        BallPrototype(name="anununu", color=pygame.Color("lightpink")),
     ]
 
-    factory = BallFactory(
+    factory = BallSpawnConfigFactory(
         configuration,
-        ball_specs=ball_specs,
+        ball_prototypes=ball_prototypes,
     )
 
     game = Game(configuration, factory.make_balls)

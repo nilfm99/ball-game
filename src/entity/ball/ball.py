@@ -5,65 +5,66 @@ from typing import override
 import pygame
 import pymunk
 
-from src.entity.ball.face_configuration import FaceConfiguration
+from src.entity.ball.ball_spawn_config import BallSpawnConfig
 from src.entity.entity import Entity
+from src.faces.loaded_face_configuration import LoadedFaceConfiguration
 from src.game.display import Display
+from src.visuals.damage_number_effect import DamageNumberEffect
+from src.visuals.face_implosion_effect import FaceImplosionEffect
+from src.visuals.halo_effect import HaloEffect
+from src.visuals.implosion_effect import ImplosionEffect
+from src.visuals.visual_effect_manager import VisualEffectManager
 
 
 class Ball(Entity):
     COLLISION_TYPE = 1
-    MAX_CRIT_TIMER = 60
-    ANGRY_FACE_PER_DAMAGE = 5
-    SPEEDUP_RATE = 0.001
+    SPEEDUP_RATE = 0.005
     SPEEDUP_CHANCE = 0.1
     VELOCITY_CAP = 2000
 
+    ANGRY_FACE_SECONDS_PER_DAMAGE = 0.1
+    CRIT_SECONDS = 1
+
     def __init__(
         self,
-        name: str,
-        position: pymunk.Vec2d,
-        velocity: pymunk.Vec2d,
-        angular_velocity: float,
-        color: pygame.Color,
-        radius: float = 40,
-        mass: float = 1,
-        initial_health: int = 100,
-        faces: FaceConfiguration | None = None,
+        spawn_config: BallSpawnConfig,
+        space: pymunk.Space,
+        visual_effect_manager: VisualEffectManager,
     ) -> None:
-        self.health = initial_health
-        self.crit_timer = 0
-        self.hit_timer = 0
-        self.faces = faces
+        self.prototype = spawn_config.prototype
+        self.radius = spawn_config.radius
+        self.mass = spawn_config.mass
+        self.health = spawn_config.initial_health
 
-        self.name = name
-        self.radius = radius
-        self.color = color
+        self.hit_timer_seconds = 0.0
 
-        moment: float = pymunk.moment_for_circle(mass, 0, radius)
-        self.body: pymunk.Body = pymunk.Body(mass, moment)
-        self.body.position = position
-        self.body.velocity = velocity
-        self.body.angular_velocity = angular_velocity
+        self.body: pymunk.Body = pymunk.Body(
+            self.mass,
+            pymunk.moment_for_circle(self.mass, 0, self.radius),
+        )
+        self.body.position = spawn_config.position
+        self.body.velocity = spawn_config.velocity
+        self.body.angular_velocity = spawn_config.angular_velocity
         self.body.user_data = self
 
-        self.shape = pymunk.Circle(self.body, radius)
+        self.shape = pymunk.Circle(self.body, self.radius)
         self.shape.elasticity = 1.0
         self.shape.friction = 0.1
 
         self.shape.collision_type = self.COLLISION_TYPE
+        self.space = space
+        self.space.add(self.body, self.shape)
 
-    def load_faces(self) -> None:
-        if self.faces is not None:
-            self.faces.load_images()
+        self.faces = LoadedFaceConfiguration(self.prototype.faces) if self.prototype.faces else None
 
-    @override
-    def add_to_space(self, space: pymunk.Space) -> None:
-        space.add(self.body, self.shape)
+        self.visual_effect_manager = visual_effect_manager
 
     @override
     def update(self, dt: float) -> None:
-        self.crit_timer = max(0, self.crit_timer - 1)
-        self.hit_timer = max(0, self.hit_timer - 1)
+        if self.health <= 0:
+            return
+
+        self.hit_timer_seconds = max(0.0, self.hit_timer_seconds - dt)
         if random.random() < self.SPEEDUP_CHANCE and self.body.velocity.length < self.VELOCITY_CAP:
             self.body.velocity *= 1 + self.SPEEDUP_RATE
 
@@ -75,38 +76,71 @@ class Ball(Entity):
         pos = (self.body.position.x, self.body.position.y)
 
         # Ball base
-        display.draw_circle(pos, self.radius, self.color)
+        display.draw_circle(pos, self.radius, self.prototype.color)
 
         # Face image (rotated)
-        if self.faces is not None:
+        if self.prototype.faces is not None:
             angle_deg = -self.body.angle * 180 / math.pi
             display.draw_image(self.get_current_face(), pos, angle_deg)
 
-        # Crit halo
-        if self.crit_timer > 0:
-            max_halo_radius = self.radius + 20
-            min_halo_radius = self.radius + 8
-            halo_radius = int(
-                min_halo_radius + (max_halo_radius - min_halo_radius) * (self.crit_timer / self.MAX_CRIT_TIMER)
-            )
-            alpha = int(180 * (self.crit_timer / self.MAX_CRIT_TIMER))
-            display.draw_halo(pos, halo_radius, alpha)
-
         # Health text below the ball
         health_text = f"{int(self.health)}"
-        health_font = pygame.font.SysFont('Arial', 18, bold=True)
+        health_font = pygame.font.SysFont('Arial', 20, bold=True)
         text_center = (pos[0], pos[1] + self.radius + 12)
         display.draw_text(health_text, text_center, health_font, (80, 80, 80))
 
-    def set_crit(self) -> None:
-        self.crit_timer = self.MAX_CRIT_TIMER
+    def deal_damage(self, damage: int, is_crit: bool) -> None:
+        if is_crit:
+            self.visual_effect_manager.add(
+                HaloEffect(
+                    self,
+                    duration=self.CRIT_SECONDS,
+                )
+            )
 
-    def set_hit(self, damage: int) -> None:
-        self.hit_timer = damage * self.ANGRY_FACE_PER_DAMAGE
+    def receive_damage(self, damage: int, is_crit: bool) -> None:
+        if damage > 0:
+            self.hit_timer_seconds = damage * self.ANGRY_FACE_SECONDS_PER_DAMAGE
+            self.health = max(0, self.health - damage)
+
+            self.visual_effect_manager.add(
+                DamageNumberEffect(
+                    self,
+                    damage,
+                    is_crit,
+                )
+            )
+
+            if self.health == 0:
+                self.space.remove(self.body, self.shape)
+                if self.faces:
+                    self.visual_effect_manager.add(
+                        FaceImplosionEffect(
+                            pos=(self.body.position.x, self.body.position.y),
+                            angle_deg=-self.body.angle * 180 / math.pi,
+                            face_surface=self.faces.sad_surface,
+                            initial_radius=self.radius + 10,
+                            duration=0.5
+                        )
+                    )
+                else:
+                    self.visual_effect_manager.add(
+                        ImplosionEffect(
+                            pos=(self.body.position.x, self.body.position.y),
+                            color=self.prototype.color,
+                            initial_radius=self.radius + 10,
+                            duration=0.5
+                        )
+                    )
+
 
     def get_current_face(self) -> pygame.Surface:
         assert self.faces is not None
-        return self.faces.happy_surface if self.hit_timer == 0 else self.faces.sad_surface
+        return self.faces.happy_surface if self.hit_timer_seconds == 0 else self.faces.sad_surface
+
+    @property
+    def name(self) -> str:
+        return self.prototype.name
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}({self.name}) at ({self.body.position.x}, {self.body.position.y})"

@@ -6,7 +6,7 @@ import pymunk
 
 class CollisionHandler:
     BASE_CRIT_CHANCE = 0.05  # 5% minimum
-    CRIT_SCALE = 0.00005  # 0.05% per unit of impact speed (tune as needed)
+    CRIT_SCALE = 0.0001  # 0.1% per unit of impact speed (tune as needed)
     CRIT_MULTIPLIER = 2  # Double damage on crit
 
     @staticmethod
@@ -22,7 +22,7 @@ class CollisionHandler:
     @staticmethod
     def handle_ball_collision(
             arbiter: pymunk.Arbiter,
-            space: pymunk.Space,
+            _space: pymunk.Space,
             _data: Any,
     ) -> None:
         shape_a, shape_b = arbiter.shapes
@@ -44,33 +44,21 @@ class CollisionHandler:
         crit_a = CollisionHandler.crit_roll(impact_b_to_a)
         crit_b = CollisionHandler.crit_roll(impact_a_to_b)
 
-        if crit_a:
-            ball_a.set_crit()
-        if crit_b:
-            ball_b.set_crit()
-
         damage_to_a = CollisionHandler.get_ball_damage(impact_b_to_a, crit_b)
         damage_to_b = CollisionHandler.get_ball_damage(impact_a_to_b, crit_a)
 
+        # First-hitter advantage: whoever was going to do the most damage gets first hit
         a_health = ball_a.health - damage_to_a
         b_health = ball_b.health - damage_to_b
 
         if a_health <= 0 and b_health <= 0:
-            # First-hitter advantage: whoever was going to do the most damage gets first hit
             if a_health > b_health:
-                a_health = ball_a.health
+                damage_to_a = 0
             elif b_health > a_health:
-                b_health = ball_b.health
+                damage_to_b = 0
 
-        ball_a.health = max(0, a_health)
-        ball_b.health = max(0, b_health)
+        ball_a.deal_damage(damage_to_b, crit_a)
+        ball_b.deal_damage(damage_to_a, crit_b)
 
-        if ball_a.health <= 0:
-            space.remove(ball_a.body, shape_a)
-        if ball_b.health <= 0:
-            space.remove(ball_b.body, shape_b)
-
-        if damage_to_a > 0:
-            ball_a.set_hit(damage_to_a)
-        if damage_to_b > 0:
-            ball_b.set_hit(damage_to_b)
+        ball_a.receive_damage(damage_to_a, crit_b)
+        ball_b.receive_damage(damage_to_b, crit_a)

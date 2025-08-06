@@ -2,23 +2,16 @@ from pathlib import Path
 
 import pygame
 
+from src.faces.face_configuration import FaceConfiguration
 
-class FaceConfiguration:
+
+class LoadedFaceConfiguration:
     def __init__(
         self,
-        happy_path: Path,
-        sad_path: Path,
-        diameter: int,
+        face_configuration: FaceConfiguration,
     ):
-        self.happy_path = happy_path
-        self.sad_path = sad_path
-        self.diameter = diameter
-        self.happy_surface = None
-        self.sad_surface = None
-
-    def load_images(self):
-        self.happy_surface = self.load_circular_image(self.happy_path, self.diameter)
-        self.sad_surface = self.load_circular_image(self.sad_path, self.diameter)
+        self.happy_surface = self.load_circular_image(face_configuration.happy_path, face_configuration.diameter)
+        self.sad_surface = self.load_circular_image(face_configuration.sad_path, face_configuration.diameter)
 
     @staticmethod
     def load_circular_image(path: Path, diameter: int) -> pygame.Surface:

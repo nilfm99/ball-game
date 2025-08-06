@@ -10,7 +10,7 @@ class Configuration:
     bottom_hud_height: int = 80
     hud_color: tuple[int, int, int] = (245, 235, 220)
     ball_radius: int = 60
-    title: str = "KachuPuchu"
+    title: str = "Ball game"
 
     @property
     def min_initial_speed(self) -> float:
