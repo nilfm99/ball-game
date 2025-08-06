@@ -80,10 +80,10 @@ class Ball(Entity):
         pos = (self.body.position.x, self.body.position.y)
 
         alpha = self.modifiers.get_pulse_alpha()
-        if self.prototype.faces is not None:
+        if self.faces:
             angle_deg = -self.body.angle * 180 / math.pi
             display.draw_image(self.get_current_face(), pos, angle_deg, alpha)
-        else:
+        elif self.prototype.color:
             display.draw_circle(pos, self.radius, self.prototype.color, alpha)
 
         # Health text below the ball
@@ -130,7 +130,7 @@ class Ball(Entity):
                             duration=0.5
                         )
                     )
-                else:
+                elif self.prototype.color:  # TODO: assert this Either in the type system correctly
                     self.visual_effect_manager.add(
                         ImplosionEffect(
                             pos=(self.body.position.x, self.body.position.y),

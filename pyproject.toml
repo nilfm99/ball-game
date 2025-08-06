@@ -3,7 +3,7 @@ authors = [
     { name = "Nil Fons Miret", email = "nil.fons@gmail.com" }
 ]
 license = "MIT"
-name = "ball-game"
+name = "boink"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
