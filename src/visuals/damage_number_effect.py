@@ -12,15 +12,23 @@ from src.visuals.visual_effect import VisualEffect
 
 
 class DamageNumberEffect(VisualEffect):
-    def __init__(self, ball: Ball, amount: int, is_crit: bool):
+    def __init__(
+            self,
+            ball: Ball,
+            amount: int,
+            is_crit: bool,
+            min_size: int = 20,
+            max_size: int = 80,
+    ) -> None:
         super().__init__(2 if is_crit else 1)
         self.ball = ball
         self.amount = amount
         self.is_crit = is_crit
+        self.min_size = min_size
+        self.max_size = max_size
 
-    @staticmethod
-    def _get_font_size(damage: int) -> int:
-        return 20 + damage // 5  # maps to [20, 40]
+    def _get_font_size(self, damage: int) -> int:
+        return self.min_size + (self.max_size - self.min_size) * damage // 100
 
     @override
     def draw(self, display: Display) -> None:
