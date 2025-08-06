@@ -23,8 +23,10 @@ dev = [
 strict = true
 disable_error_code = ["import-untyped"]
 
-["mypy-pygame.*"]
+[[tool.mypy.overrides]]
+module = "pygame.*"
 ignore_missing_imports = true
 
-["mypy-pymunk.*"]
+[[tool.mypy.overrides]]
+module = "pymunk.*"
 ignore_missing_imports = true

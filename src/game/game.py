@@ -3,7 +3,10 @@ from collections.abc import Callable
 import pygame
 import pymunk
 
-from src.collisions.collision_handler import CollisionHandler
+from src.collisions.ball_to_ball_collisions import (
+    handle_ball_to_ball_collision,
+    handle_post_ball_to_ball_collision,
+)
 from src.configuration.configuration import Configuration
 from src.entity.ball.ball import Ball
 from src.entity.ball.ball_spawn_config import BallSpawnConfig
@@ -34,7 +37,8 @@ class Game:
         space.on_collision(
             Ball.COLLISION_TYPE,
             Ball.COLLISION_TYPE,
-            begin=CollisionHandler.handle_ball_collision,
+            begin=handle_ball_to_ball_collision,
+            separate=handle_post_ball_to_ball_collision,
         )
         return space
 
