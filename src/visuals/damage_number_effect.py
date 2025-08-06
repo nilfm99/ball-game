@@ -16,10 +16,14 @@ class DamageNumberEffect(VisualEffect):
         self.amount = amount
         self.is_crit = is_crit
 
+    @staticmethod
+    def _get_font_size(damage: int) -> int:
+        return 20 + damage // 5  # maps to [20, 40]
+
     @override
     def draw(self, display):
         color = (255, 0, 0) if not self.is_crit else (255, 180, 0)
-        font = pygame.font.SysFont('Arial', 25, bold=True)
+        font = pygame.font.SysFont('Arial', self._get_font_size(damage=self.amount), bold=True)
         alpha = int(255 * (self.timer_seconds / 1.0))
         text = f"-{self.amount}"
         pos_x = self.ball.body.position.x

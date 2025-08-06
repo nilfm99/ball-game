@@ -97,8 +97,11 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     raise InterruptedError()
-                if finished and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if button_rect.collidepoint(event.pos):
+                if finished:
+                    if (
+                            (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and button_rect.collidepoint(event.pos)) or
+                            (event.type == pygame.KEYDOWN and event.key in (pygame.K_RETURN, pygame.K_SPACE))
+                    ):
                         return
 
             dt = min(
@@ -132,19 +135,22 @@ class Game:
             self.display.flip()
 
     def run(self) -> None:
-        while True:
-            self.space = self._create_space()
+        try:
+            while True:
+                self.space = self._create_space()
 
-            walls = self._create_walls(self.space, self.configuration.sim_size)
+                walls = self._create_walls(self.space, self.configuration.sim_size)
 
-            ball_spawn_configs = self.balls_factory()
-            balls = [
-                Ball(
-                    spawn_config,
-                    self.space,
-                    self.visual_effect_manager,
-                )
-                for spawn_config in ball_spawn_configs
-            ]
+                ball_spawn_configs = self.balls_factory()
+                balls = [
+                    Ball(
+                        spawn_config,
+                        self.space,
+                        self.visual_effect_manager,
+                    )
+                    for spawn_config in ball_spawn_configs
+                ]
 
-            self.run_main_loop(walls, balls)
+                self.run_main_loop(walls, balls)
+        except InterruptedError:
+            print("Exiting...")

@@ -90,13 +90,7 @@ class Ball(Entity):
         display.draw_text(health_text, text_center, health_font, (80, 80, 80))
 
     def deal_damage(self, damage: int, is_crit: bool) -> None:
-        if is_crit:
-            self.visual_effect_manager.add(
-                HaloEffect(
-                    self,
-                    duration=self.CRIT_SECONDS,
-                )
-            )
+        pass
 
     def receive_damage(self, damage: int, is_crit: bool) -> None:
         if damage > 0:
@@ -110,6 +104,14 @@ class Ball(Entity):
                     is_crit,
                 )
             )
+
+            if is_crit:
+                self.visual_effect_manager.add(
+                    HaloEffect(
+                        self,
+                        duration=self.CRIT_SECONDS,
+                    )
+                )
 
             if self.health == 0:
                 self.space.remove(self.body, self.shape)

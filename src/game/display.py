@@ -62,12 +62,12 @@ class Display:
             self,
             center: tuple[float, float],
             halo_radius: int,
-            alpha: int,
+            color: pygame.Color,
     ) -> None:
         halo_surf = pygame.Surface((halo_radius * 2, halo_radius * 2), pygame.SRCALPHA)
         pygame.draw.circle(
             halo_surf,
-            (255, 255, 100, alpha),
+            color,
             (halo_radius, halo_radius),
             halo_radius
         )
