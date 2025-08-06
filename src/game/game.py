@@ -34,7 +34,7 @@ class Game:
         space.on_collision(
             Ball.COLLISION_TYPE,
             Ball.COLLISION_TYPE,
-            pre_solve=CollisionHandler.handle_ball_collision,
+            begin=CollisionHandler.handle_ball_collision,
         )
         return space
 
