@@ -1,6 +1,6 @@
 [project]
 authors = [
-    { name = "Nil Fons Miret", email = "nilf@netflix.com" }
+    { name = "Nil Fons Miret", email = "nil.fons@gmail.com" }
 ]
 license = "MIT"
 name = "ball-game"
